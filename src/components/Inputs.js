@@ -1,58 +1,66 @@
-import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { RiArrowRightSLine, RiArrowLeftSLine } from 'react-icons/ri'
 import { useDispatch, useSelector } from "react-redux";
-import { set_amount, set_month } from "../redux/Actions";
+import ArrowKeysReact from 'arrow-keys-react';
+import { actual_data, showElements } from "../redux/Actions";
+
 
 const Inputs = () => {
-    const [data, setData] = useState([]);
-    const dispatch = useDispatch()
+    const dispatch = useDispatch();
+    const minMonth = useSelector(state => state.getMonth.min)
+    const minAmount = useSelector(state => state.getAmount.min)
+    const maxMonth = useSelector(state => state.getMonth.max)
+    const maxAmount = useSelector(state => state.getAmount.max)
+    const [months, setMonths] = useState();
     const [amount, setAmount] = useState();
-    const productName = useSelector(state => state.productName)
-    const [productInfo, setProductInfo] = useState()
-    const [months, setMonths] = useState('')
-    const getMonthFromRedux = useSelector(state => state.getMonth)
-    const getAmountFromRedux = useSelector(state => state.getAmount)
+
+
 
     useEffect(() => {
-        axios.get('../products.json').then(res => setData(res.data)).catch(err => console.log(err.message))
-        if (productName === 'automobile')
-            setProductInfo(data[1]);
-
-        else if (productName === 'cash') setProductInfo(data[0]);
-        else setProductInfo(data[2]);
-    }, [productName])
-
-    useEffect(() => {
-        setMonths(getMonthFromRedux)
-        setAmount(getAmountFromRedux)
-    }, [productInfo])
+        setMonths(minMonth);
+    }, [minAmount, minMonth])
 
     const increaseMonths = () => {
-        if (parseInt(months) < productInfo.max_tenure)
+        if (parseInt(months) >= parseInt(minMonth) && parseInt(months) < parseInt(maxMonth)) {
             setMonths(e => parseInt(e) + 1);
+            dispatch(actual_data(amount ? amount : maxAmount, months))
+            console.log(amount);
+        }
     }
     const decreaseMonths = () => {
-        if (parseInt(months) > productInfo.min_tenure)
+        if (parseInt(months) > parseInt(minMonth) && parseInt(months) <= parseInt(maxMonth)) {
             setMonths(e => parseInt(e) - 1);
-    }
-    useEffect(() => {
-        if (months && amount) {
-            dispatch(set_amount(amount));
-            dispatch(set_month(months));
+            dispatch(actual_data(amount ? amount : maxAmount, months))
         }
-
-    }, [amount, months])
+    }
+    const changeAmount = (e) => {
+        if (e <= parseInt(maxAmount)) {
+            setAmount(e);
+            dispatch(actual_data(e != 0 ? e : maxAmount, months))
+        }
+    }
+    const changetMonths = (e) => {
+        ArrowKeysReact.config({
+            up: () => {
+                if (parseInt(months) < maxAmount)
+                    setMonths(e);
+            },
+            down: () => {
+                if (parseInt(months) > minAmount)
+                    setMonths(e);
+            }
+        });
+    }
     return (
-        <main className="sm:mx-10 mx-4 sm:flex justify-between items-center my-8 h-[81px]">
-            <div className="sm:basis-3/4 flex flex-col sm:items-center ">
+        <main className={`mx-auto sm:w-[480px] w-80 sm:flex justify-between items-center my-8 h-[81px]`}>
+            <div className="sm:w-3/4 sm:mr-4 flex flex-col sm:items-center ">
                 <label className="mb-4">Loan amount</label>
-                <input onChange={(e) => setAmount(e.target.value)} value={amount} className="border border-border h-[56px] pl-4" type="number" placeholder="$" required />
+                <input value={amount} onChange={(e) => changeAmount(e.target.value)} className="w-full border border-border h-[56px] pl-4" type="number" required placeholder={`$${maxAmount}`} />
             </div>
-            <div className="relative flex flex-col sm:items-center">
+            <div className="relative flex flex-col sm:items-center sm:w-1/2" >
                 <label className="mb-4">Number of Months</label>
                 <span onClick={() => increaseMonths()} className="absolute left-0 top-1/2 translate-y-1/2 text-xl cursor-pointer"><RiArrowLeftSLine /></span>
-                <input className="text-center w-full border border-border h-[56px] pl-4" type="number" required value={parseInt(months)} />
+                <input value={months} className="text-center w-full border border-border h-[56px] pl-4" type="number" required onChange={(e) => changetMonths(e.target.value)} />
                 <span onClick={() => decreaseMonths()} className="absolute right-0 top-1/2 translate-y-1/2 text-xl cursor-pointer"><RiArrowRightSLine /></span>
             </div>
         </main>

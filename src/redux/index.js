@@ -1,10 +1,12 @@
 import { combineReducers } from "redux";
-import { reducerSetAmount, reducerSetMonth, reducerSetProductName } from "./reducers";
+import { reducerActualData, reducerGetAmount, reducerProductID, reducerSetInteret, reducerSetMonth } from "./reducers";
 
 const reducers = combineReducers({
-    productName: reducerSetProductName,
-    getAmount: reducerSetAmount,
+    actualData: reducerActualData,
+    productID: reducerProductID,
+    getAmount: reducerGetAmount,
     getMonth: reducerSetMonth,
+    getInteret: reducerSetInteret,
 })
 
 export default reducers;
